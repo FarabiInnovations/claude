@@ -1,6 +1,6 @@
 # claude
 
-Claude Code configuration for Farabi Innovations — agents, commands, and skills.
+Claude Code configuration for Farabi Innovations — agents, commands, and skills that encode how we build software.
 
 ## Install
 
@@ -10,28 +10,65 @@ cd ~/.farabi-claude
 ./install.sh
 ```
 
-Then run `/reload-skills` inside Claude Code.
+Then run `/reload-skills` inside Claude Code to activate everything.
 
-## What's included
+`install.sh` uses symlinks — a `git pull` is all it takes to stay current.
 
-### Commands
-| Command | Description |
-|---|---|
-| `/gitac` | Stage and commit with an auto-generated message |
-| `/gitacpl` | Stage, commit, push, and monitor CI until complete |
+---
 
-### Skills
-| Skill | Description |
-|---|---|
-| `explainability-layer` | Enforces that every feature making a business decision includes an explainability layer |
+## Agents
 
-### Agents
-| Agent | Description |
-|---|---|
-| `system-architect` | Plan and review architecture before implementation |
-| `product-manager` | Define requirements, user stories, and business rules |
-| `data-analyst` | Data analysis, scoring, matching, and statistical evaluation |
+Agents are specialized sub-models invoked automatically when the task fits. Each one has a focused system prompt, a defined scope, and knows when to step in.
 
-## How it works
+### `system-architect`
+Plans and reviews architecture **before** implementation begins. Invoked whenever a feature touches multiple layers, requires a data flow decision, or involves a non-trivial refactor. Produces a step-by-step design, identifies critical files, and surfaces trade-offs before a line of code is written. Prevents the most expensive class of mistake: building the wrong thing correctly.
 
-`install.sh` creates symlinks from `~/.claude/` to this repo, so pulling updates is all it takes to stay current.
+**Triggers automatically when you say things like:**
+- "I want to add a notification system..."
+- "Should we use Redis or in-memory caching?"
+- "We need to refactor the stock accumulation logic..."
+
+---
+
+### `product-manager`
+Turns vague ideas into structured requirements. Runs discovery sessions, writes user stories, defines business rules, and produces documentation a dev team can act on. Useful when a feature is underspecified, when you're choosing between approaches, or when you need business logic documented formally.
+
+**Triggers automatically when you say things like:**
+- "I want to add a company matching feature..."
+- "Help me document all the rules around X..."
+- "We have a bunch of ideas, not sure what to prioritize..."
+
+---
+
+### `data-analyst`
+Handles anything involving data evaluation, scoring, matching, or statistical analysis. Entity matching, deduplication, threshold tuning, precision/recall trade-offs, exploratory data analysis, anomaly detection, clustering — if data needs to be scored, ranked, matched, predicted, or profiled, this agent runs it.
+
+**Triggers automatically when you say things like:**
+- "What's the right threshold for our matching pipeline?"
+- "Tell me what this collection looks like..."
+- "We're getting bad matches — help improve accuracy..."
+
+---
+
+## Skills
+
+Skills are enforced design rules that activate when the task calls for them. They don't just advise — they shape what gets built.
+
+### `explainability-layer`
+Every feature that makes a business decision must ship with an explainability layer. This skill enforces that rule.
+
+When you build something that scores, ranks, filters, routes, or applies business logic — the explainability layer ships in the same PR. It can be a UI tab, an API endpoint, a structured log, an admin panel, or an audit trail. The form doesn't matter. What matters is that a human can inspect any decision and understand exactly how it was reached: **what was decided, which rules applied, and why.**
+
+This skill activates when building or reviewing features involving eligibility gates, pricing logic, automated approvals, matching pipelines, or any logic a human will act on.
+
+---
+
+## Commands
+
+Slash commands that run common workflows.
+
+### `/gitac [message]`
+Stages changed files, generates a commit message from the diff (focused on *why*, not *what*), and commits. Pass a message to override the generated one.
+
+### `/gitacpl [message]`
+Everything `/gitac` does, then pushes to the current branch and monitors the CI pipeline — polling every ~60s and reporting pass or fail when the run completes.
